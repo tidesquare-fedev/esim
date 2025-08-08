@@ -1,0 +1,9 @@
+{
+    "rewrites": [
+      {
+        "source": "/api/search-city",
+        "destination": "https://dev-apollo-api.tidesquare.com/tna-api-v2/rest/area/city"
+      }
+    ]
+  }
+  
