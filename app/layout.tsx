@@ -18,7 +18,7 @@ export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
-}>) {
+}>)  {
   return (
     <html lang="en">
       <head>
@@ -66,7 +66,6 @@ export default async function RootLayout({
                   ? metadata.title
                   : String(metadata.title) ?? ""
               }
-              device="mo"
               env={
                 process.env.NEXT_PUBLIC_APP_ENV === "production"
                   ? "production"
@@ -99,23 +98,18 @@ export default async function RootLayout({
                 var dc = document.cookie;
                 var prefix = name + "=";
                 var begin = dc.indexOf("; " + prefix);
-
                 if (begin == -1) {
                     begin = dc.indexOf(prefix);
                     if (begin != 0) { return null;}
                 } else {
                     begin += 2;
                 }
-
                 var end = document.cookie.indexOf(";", begin);
-
                 if (end == -1) {
                     end = dc.length;
                 }
-
                 return unescape(dc.substring(begin + prefix.length, end));
               }
-
               var gtmMemberId = getCookie("memberId");
               var gtmMemberNo = getCookie("gaUniqDemension1");
               var filter = "win16|win32|win64|mac|macintel";
@@ -123,7 +117,6 @@ export default async function RootLayout({
               var platform = navigator.platform.toLowerCase();
               var appName = '';
               var device = "";
-
               if (agent.indexOf('privia_travel_android_app_ver') > -1) {
                 appName = 'mobileApp';
                 device = "moApp";
@@ -143,7 +136,6 @@ export default async function RootLayout({
                 appName = 'desktop';
                 device = "pcWeb";
               }
-
               window.dataLayer = window.dataLayer || [];
               dataLayer = [{
                 'userID' : gtmMemberId != null ? gtmMemberId : "",
@@ -170,22 +162,18 @@ export default async function RootLayout({
             {/* <Script id="sc6" type="text/javascript">
               {`
                 var _paq = window._paq = window._paq || [];
-
                 //member no
                 var taMemberNo = getCookie("memberNo");
                 if (taMemberNo != null) _paq.push(['setUserId', taMemberNo]);
                 else _paq.push(['setUserId', ' ']);
-
                 _paq.push(['trackPageView']);
                 _paq.push(['enableLinkTracking']);
                 (function() {
                     var u = "//ta.tidesquare.com/matomo/";
                     //tracking cookie domain
                     _paq.push(['setCookieDomain', '*.priviatravel.com']);
-
                     //setDomains
                     _paq.push(['setDomains', '*.priviatravel.com']);
-
                     //default
                     if (['activity.priviatravel.com'].indexOf(window.location.hostname) > -1) {
                       _paq.push(['setTrackerUrl', '//ta.tidesquare.com/collect']);
@@ -194,20 +182,16 @@ export default async function RootLayout({
                       _paq.push(['setTrackerUrl', '//dta.tidesquare.com/collect']);
                       _paq.push(['setSiteId', '2']);
                     }
-
                     var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
                     g.type='text/javascript'; g.async=true; g.src=u+'matomo.js'; s.parentNode.insertBefore(g,s);
                 })();
-
                 function _matomoSendSPAload() {
                     var _paq = window._paq = window._paq || [];
-
                     // 수정해야할 부분 start
                     var taMemberNo = getCookie("memberNo"); // 실 사용자 memberno
                     var taPageUrl = location.href; // 전송할 custom url
                     var taTitle = document.title; // 전송할 title
                     // 수정해야할 부분 end
-
                     if (taMemberNo != null) _paq.push(['setUserId', taMemberNo]);
                     else _paq.push(['setUserId', ' ']);
                     _paq.push(['setCustomUrl', taPageUrl]);
@@ -215,7 +199,6 @@ export default async function RootLayout({
                     _paq.push(['trackPageView']);
                 }
                 window._matomoSendSPAload = _matomoSendSPAload;
-
                 function _matomoSendEvent(eventName, eventValue) {
                   var customData = {
                     "event": "click",
@@ -269,13 +252,6 @@ export default async function RootLayout({
         {children}
         {process.env.NEXT_PUBLIC_APP_BRAND === "tourvis" && (
           <>
-            <TourvisPcFooter
-              env={
-                process.env.NEXT_PUBLIC_APP_ENV === "production"
-                  ? "production"
-                  : "development"
-              }
-            />
             <TourvisBottomTabBar
               env={
                 process.env.NEXT_PUBLIC_APP_ENV === "production"
@@ -311,7 +287,6 @@ export default async function RootLayout({
                 __html: `<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WQKP64D" height="0" width="0" style="display:none;visibility:hidden"></iframe>`,
               }}
             />
-
             <noscript
               id="nsc2"
               dangerouslySetInnerHTML={{
@@ -319,7 +294,6 @@ export default async function RootLayout({
                   '<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5HT7Z7K" height="0" width="0" style="display:none;visibility:hidden"></iframe>',
               }}
             />
-
             <noscript
               id="nsc3"
               dangerouslySetInnerHTML={{
@@ -327,7 +301,6 @@ export default async function RootLayout({
                   '<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-M72MGBC" height="0" width="0" style="display:none;visibility:hidden"></iframe>',
               }}
             />
-
             <noscript
               id="nsc4"
               dangerouslySetInnerHTML={{
