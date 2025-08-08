@@ -5,6 +5,8 @@ import Script from "next/script";
 import TourvisPcGnb from "@/components/tourvis-pc-gnb";
 import TourvisPcFooter from "@/components/tourvis-pc-footer";
 import TourvisBottomTabBar from "@/components/tourvis-bottom-tab-bar";
+import PriviaPcGnb from "@/components/privia-pc-gnb";
+import PriviaHamburger from "@/components/privia-hamburger";
 
 
 export const metadata: Metadata = {
