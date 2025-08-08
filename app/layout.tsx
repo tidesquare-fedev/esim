@@ -6,7 +6,6 @@ import Script from "next/script";
 import TourvisPcGnb from "@/components/tourvis-pc-gnb";
 import TourvisPcFooter from "@/components/tourvis-pc-footer";
 import TourvisBottomTabBar from "@/components/tourvis-bottom-tab-bar";
-import TourvisContTop from "@/components/tourvis-cont-top";
 
 
 export const metadata: Metadata = {
