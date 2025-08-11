@@ -58,7 +58,7 @@ const ProductList: React.FC<ProductListProps> = ({ selectedCountries, products, 
     const hasProducts = commonProducts.length > 0 || individualProductsByCountry.length > 0;
 
     return (
-        <div className="p-4 md:p-6">
+        <div className="w-full max-w-[750px] mx-auto px-4">
             <div className="flex items-center mb-6">
                 <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-100 mr-2">
                     <ChevronLeft className="w-6 h-6 text-gray-700" />

@@ -27,7 +27,7 @@ export default async function RootLayout({
           href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css"
         />
       </head>
-      <body>
+      <body className="flex flex-col min-h-screen">
         {process.env.NEXT_PUBLIC_APP_BRAND === "tourvis" && (
           <>
             <Script
@@ -145,10 +145,10 @@ export default async function RootLayout({
               {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0], j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-WQKP64D');`}
             </Script>
             <Script id="sc3" type="text/javascript">
-              {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-5HT7Z7K');`}
+              {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-M72MGBC');`}
             </Script>
             <Script id="sc4" type="text/javascript">
-              {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-M72MGBC');`}
+              {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-WJ3CZHH');`}
             </Script>
             <Script id="sc5" type="text/javascript">
               {`(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src='https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);})(window,document,'script','dataLayer','GTM-WJ3CZHH');`}
@@ -253,9 +253,18 @@ export default async function RootLayout({
             />
           </>
         )}
-        {children}
+        <main className="flex-1 my-8">
+          {children}
+        </main>
         {process.env.NEXT_PUBLIC_APP_BRAND === "tourvis" && (
           <>
+            <TourvisPcFooter
+              env={
+                process.env.NEXT_PUBLIC_APP_ENV === "production"
+                  ? "production"
+                  : "development"
+              }
+            />
             <TourvisBottomTabBar
               env={
                 process.env.NEXT_PUBLIC_APP_ENV === "production"
@@ -296,7 +305,7 @@ export default async function RootLayout({
               id="nsc2"
               dangerouslySetInnerHTML={{
                 __html:
-                  '<iframe src="https://www.googletagmanager.com/ns.html?id=GTM-5HT7Z7K" height="0" width="0" style="display:none;visibility:hidden"></iframe>',
+                  '<iframe src="https://www.googletagmanager.com/0" height="0" width="0" style="display:none;visibility:hidden"></iframe>',
               }}
             />
 

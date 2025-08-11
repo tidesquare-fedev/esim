@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
+    "dev": "set NEXT_PUBLIC_APP_BRAND=tourvis && set NEXT_PUBLIC_APP_ENV=development && next dev",
+    "build": "set NEXT_PUBLIC_APP_BRAND=tourvis && set NEXT_PUBLIC_APP_ENV=development && next build",
+    "start": "set NEXT_PUBLIC_APP_BRAND=tourvis && set NEXT_PUBLIC_APP_ENV=development && next start",
     "lint": "next lint"
   },
   "dependencies": {

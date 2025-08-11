@@ -84,10 +84,10 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ countries, onCountrie
     return (
         <>
             {isGuideOpen && <GuidePopup onClose={() => setIsGuideOpen(false)} />}
-            <div className="p-4 md:p-6">
+            <div className="w-full max-w-[750px] mx-auto px-4">
                 <div className="flex justify-between items-center">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800">어디로 여행가시나요?</h1>
-                    <button 
+                    <button
                         onClick={() => setIsGuideOpen(true)}
                         className="text-lg font-medium text-custom-blue hover:underline"
                     >

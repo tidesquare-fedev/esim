@@ -19,6 +19,8 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
 
     const handlePlanSelect = (plan: Plan) => {
         setSelectedPlan(plan);
+        // 선택된 플랜을 콘솔에 출력 (디버깅용)
+        console.log('선택된 플랜:', plan);
     };
 
     const handleBooking = () => {
@@ -34,58 +36,108 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
     };
 
     return (
-        <div className="p-4 md:p-6">
+        <div className="w-full max-w-[750px] mx-auto px-4">
             <div className="flex items-center mb-6">
                 <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-100 mr-2">
                     <ChevronLeft className="w-6 h-6 text-gray-700" />
                 </button>
-                <h1 className="text-2xl font-bold text-gray-800 truncate">{product.name}</h1>
+                <h1 className="text-2xl font-bold text-gray-800 truncate">
+                    {product.name}
+                </h1>
             </div>
-
-            <div className="bg-white p-5 rounded-lg border border-gray-200 mb-8">
-                <p className="text-sm text-custom-blue font-semibold">{product.provider}</p>
-                <h2 className="text-xl font-bold mt-1">{product.name}</h2>
+            
+            <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+                <div className="flex justify-between items-start mb-4">
+                    <div>
+                        <h2 className="text-xl font-semibold text-gray-800">{product.name}</h2>
+                        <p className="text-base text-gray-500">{product.provider}</p>
+                    </div>
+                    <div className="text-right">
+                        <p className="text-2xl font-bold" style={{ color: '#0c0c0c' }}>
+                            {product.minPrice.toLocaleString()}원
+                        </p>
+                        <p className="text-base text-gray-600">부터</p>
+                    </div>
+                </div>
+                
+                <div className="mb-4">
+                    <p className="text-base text-gray-600 mb-2">지원 국가:</p>
+                    <div className="flex flex-wrap gap-2">
+                        {product.supportedCountries.map(country => (
+                            <span key={country} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-base">
+                                {country}
+                            </span>
+                        ))}
+                    </div>
+                </div>
             </div>
-
-            <div className="mb-8">
-                <h3 className="text-lg font-bold mb-4">1. 데이터 옵션 선택</h3>
-                <div className="flex flex-wrap gap-3">
+            
+            {/* 1. 데이터 옵션 선택 */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">1. 데이터 옵션 선택</h3>
+                <div className="flex gap-3">
                     {product.options.map((option, index) => (
                         <button
                             key={index}
                             onClick={() => handleDataOptionSelect(option)}
-                            className={`px-4 py-2 border rounded-full text-base font-medium transition-colors ${selectedDataOption.data === option.data ? 'bg-custom-blue text-white border-custom-blue' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'}`}
+                                                         className={`px-4 py-2 rounded-full text-base font-medium transition-colors ${
+                                 selectedDataOption.data === option.data
+                                     ? 'text-white'
+                                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                             }`}
+                             style={{
+                                 backgroundColor: selectedDataOption.data === option.data ? '#01c5fd' : undefined
+                             }}
                         >
-                            {option.data}
+                            {option.data === '500MB' ? '500MB/일 제공' : 
+                             option.data === '1GB' ? '1GB/일 제공' : '무제한'}
                         </button>
                     ))}
                 </div>
             </div>
 
-            <div>
-                <h3 className="text-lg font-bold mb-4">2. 사용 기간 선택</h3>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {selectedDataOption.plans.map((plan, index) => (
-                        <div
-                            key={index}
-                            onClick={() => handlePlanSelect(plan)}
-                            className={`p-4 border rounded-lg cursor-pointer transition-all ${JSON.stringify(selectedPlan) === JSON.stringify(plan) ? 'bg-blue-50 border-custom-blue ring-2 ring-blue-300' : 'bg-white border-gray-300 hover:border-gray-400'}`}
-                        >
-                            <p className="font-bold text-gray-800">{plan.days}일</p>
-                            <p className="text-right font-bold text-lg mt-2 text-gray-900">{plan.price.toLocaleString()}원</p>
-                        </div>
-                    ))}
+            {/* 2. 사용 기간 선택 */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+                <h3 className="text-lg font-semibold text-gray-800 mb-4">2. 사용 기간 선택</h3>
+                <div className="bg-gray-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex gap-4">
+                        {selectedDataOption.plans.map((plan, index) => (
+                            <button
+                                key={index}
+                                onClick={() => handlePlanSelect(plan)}
+                                                                 className={`px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 cursor-pointer ${
+                                     selectedPlan.days === plan.days
+                                         ? 'text-gray-900 border scale-105'
+                                         : 'bg-white text-gray-700 border border-gray-200 hover:border-blue-300 hover:scale-105'
+                                 }`}
+                                 style={{
+                                     borderColor: selectedPlan.days === plan.days ? '#01c5fd' : undefined
+                                 }}
+                            >
+                                                                    <div className="text-center">
+                                        <div className="font-bold text-base">{plan.days}일</div>
+                                        <div className="text-sm text-gray-600 mt-1">
+                                            {plan.price.toLocaleString()}원
+                                        </div>
+                                    </div>
+                            </button>
+                        ))}
+                    </div>
                 </div>
             </div>
-            
-            <div className="mt-12">
-                <div className="flex justify-between items-center mb-3">
-                    <span className="text-gray-600 text-lg">총 금액</span>
-                    <span className="text-2xl font-extrabold text-custom-blue">{selectedPlan.price.toLocaleString()}원</span>
+
+            {/* 총 금액 및 예약하기 */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex justify-between items-center mb-6">
+                    <span className="text-lg font-medium text-gray-700">총 금액</span>
+                    <span className="text-2xl font-bold" style={{ color: '#0c0c0c' }}>
+                        {selectedPlan.price.toLocaleString()}원
+                    </span>
                 </div>
                 <button
                     onClick={handleBooking}
-                    className="w-full bg-custom-blue text-white font-bold py-4 rounded-lg text-lg hover:brightness-95 transition"
+                    className="w-full text-white font-bold py-4 rounded-lg text-lg transition-colors"
+                    style={{ backgroundColor: '#01c5fd' }}
                 >
                     예약하기
                 </button>
