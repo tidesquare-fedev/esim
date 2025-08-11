@@ -25,4 +25,6 @@ export interface Product {
   minPrice: number;
   supportedCountries: string[];
   options: DataOption[];
+  // Apollo 상품 상세 조회용 코드 (예: PRD2001354649)
+  apolloProductCode?: string;
 }
