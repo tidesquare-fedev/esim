@@ -6,6 +6,7 @@ import type { Country, Product } from '@/lib/types';
 import CountrySelector from '@/components/CountrySelector';
 import ProductList from '@/components/ProductList';
 import ProductDetail from '@/components/ProductDetail';
+import { fetchHeroImages } from '@/app/actions';
 
 const deviceAgentCode = (userAgent: string) => {
   const isMobileAppCheck = (_agent: string) => {
@@ -65,20 +66,30 @@ const HomePage = () => {
     return () => window.removeEventListener("resize", checkDevice);
   }, []);
 
-  const [heroImages, setHeroImages] = useState({
-    pcImages: [
-      {
-        id: 1,
-        image_url: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/placeholder.svg?height=600&width=1200&text=Hero+Image+1`,
-      },
-    ],
-    mobileImages: [
-      {
-        id: 1,
-        image_url: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/placeholder.svg?height=600&width=1200&text=Hero+Image+1`,
-      },
-    ],
+  const [heroImages, setHeroImages] = useState<{ pcImages: { id: number; image_url: string }[]; mobileImages: { id: number; image_url: string }[] }>({
+    pcImages: [],
+    mobileImages: [],
   });
+
+  useEffect(() => {
+    const loadHero = async () => {
+      try {
+        const res = await fetchHeroImages();
+        setHeroImages(res);
+      } catch (e) {
+        // 실패 시 placeholder 유지
+        setHeroImages({
+          pcImages: [
+            { id: 1, image_url: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/placeholder.svg?height=600&width=1200&text=Hero+Image` },
+          ],
+          mobileImages: [
+            { id: 1, image_url: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/placeholder.svg?height=600&width=1200&text=Hero+Image` },
+          ],
+        });
+      }
+    };
+    loadHero();
+  }, []);
 
   const [view, setView] = useState('countrySelector');
   const [selectedCountries, setSelectedCountries] = useState<Country[]>([]);
