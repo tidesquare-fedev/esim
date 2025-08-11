@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react';
 import { ChevronLeft } from './ui/Icons';
 import type { Product, DataOption, Plan } from '../lib/types';
 // 서버 액션 대신 API Route 사용
+import { universalEnv } from '@/env/universal-env';
 
 interface ProductDetailProps {
     product: Product;
@@ -23,7 +24,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
             try {
                 setLoading(true);
                 setError(null);
-                const res = await fetch(`/marketing/esim/api/product/${product.apolloProductCode}`, { cache: 'no-store' });
+                const res = await fetch(`${universalEnv.basePath}/api/product/${product.apolloProductCode}`, { cache: 'no-store' });
                 if (!res.ok) throw new Error(`api error ${res.status}`);
                 const data = await res.json();
                 setApolloDetail(data);
