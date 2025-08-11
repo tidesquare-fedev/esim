@@ -12,10 +12,11 @@ export async function GET(
       return NextResponse.json({ error: "product code required" }, { status: 400 });
     }
 
-    const token = process.env.APOLLO_API_TOKEN;
-    if (!token) {
+    const rawToken = process.env.APOLLO_API_TOKEN;
+    if (!rawToken) {
       return NextResponse.json({ error: "APOLLO_API_TOKEN not configured" }, { status: 500 });
     }
+    const token = rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`;
 
     const endpoint = `https://dev-apollo-api.tidesquare.com/tna-api-v2/apollo/product/detail/${code}`;
     const res = await fetch(endpoint, {
@@ -28,10 +29,11 @@ export async function GET(
     });
 
     if (!res.ok) {
-      const text = await res.text().catch(() => "");
+      let body: any = null;
+      try { body = await res.json(); } catch { body = await res.text().catch(() => ""); }
       return NextResponse.json(
-        { error: `upstream error ${res.status} ${res.statusText}`, detail: text },
-        { status: 502 }
+        { error: "upstream_error", status: res.status, statusText: res.statusText, body },
+        { status: res.status }
       );
     }
 
