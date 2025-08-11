@@ -69,13 +69,13 @@ const HomePage = () => {
     pcImages: [
       {
         id: 1,
-        image_url: `${universalEnv.basePath}/placeholder.svg?height=600&width=1200&text=Hero+Image+1`,
+        image_url: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/placeholder.svg?height=600&width=1200&text=Hero+Image+1`,
       },
     ],
     mobileImages: [
       {
         id: 1,
-        image_url: `${universalEnv.basePath}/placeholder.svg?height=600&width=1200&text=Hero+Image+1`,
+        image_url: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/placeholder.svg?height=600&width=1200&text=Hero+Image+1`,
       },
     ],
   });
