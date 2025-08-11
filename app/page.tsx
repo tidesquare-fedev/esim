@@ -6,7 +6,6 @@ import type { Country, Product } from '@/lib/types';
 import CountrySelector from '@/components/CountrySelector';
 import ProductList from '@/components/ProductList';
 import ProductDetail from '@/components/ProductDetail';
-import { fetchHeroImages } from '@/app/actions';
 
 const deviceAgentCode = (userAgent: string) => {
   const isMobileAppCheck = (_agent: string) => {
@@ -74,7 +73,7 @@ const HomePage = () => {
   useEffect(() => {
     const loadHero = async () => {
       try {
-        const res = await fetchHeroImages();
+        const res = await fetch('/marketing/esim/api/hero', { cache: 'no-store' }).then(r => r.json());
         setHeroImages(res);
       } catch (e) {
         // 실패 시 placeholder 유지
