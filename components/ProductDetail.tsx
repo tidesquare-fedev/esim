@@ -36,7 +36,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
     };
 
     return (
-        <div className="w-full max-w-[750px] mx-auto px-4">
+        <div className="w-full max-w-[750px] mx-auto px-4 pb-40">
             <div className="flex items-center mb-6">
                 <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-100 mr-2">
                     <ChevronLeft className="w-6 h-6 text-gray-700" />
@@ -127,7 +127,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
             </div>
 
             {/* 총 금액 및 예약하기 */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
+            <div className="bg-white rounded-lg border border-gray-200 p-6 mb-8">
                 <div className="flex justify-between items-center mb-6">
                     <span className="text-lg font-medium text-gray-700">총 금액</span>
                     <span className="text-2xl font-bold" style={{ color: '#0c0c0c' }}>
@@ -142,6 +142,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                     예약하기
                 </button>
             </div>
+            
+            {/* 모바일에서 푸터와 겹치지 않도록 하단 여백 추가 */}
+            <div className="h-20"></div>
         </div>
     );
 }

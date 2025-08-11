@@ -155,6 +155,9 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ countries, onCountrie
                         </button>
                     </div>
                 )}
+                
+                {/* 모바일에서 푸터와 겹치지 않도록 하단 여백 추가 */}
+                <div className="pb-20 md:pb-8"></div>
             </div>
         </>
     );
