@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 // 파일 확장자를 제거하여 오류를 수정했습니다.
 import { ChevronLeft } from './ui/Icons';
 import type { Product, DataOption, Plan } from '../lib/types';
-import { getApolloProductDetail } from '@/app/actions';
+// 서버 액션 대신 API Route 사용
 
 interface ProductDetailProps {
     product: Product;
@@ -23,7 +23,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
             try {
                 setLoading(true);
                 setError(null);
-                const data = await getApolloProductDetail(product.apolloProductCode);
+                const res = await fetch(`/marketing/esim/api/product/${product.apolloProductCode}`, { cache: 'no-store' });
+                if (!res.ok) throw new Error(`api error ${res.status}`);
+                const data = await res.json();
                 setApolloDetail(data);
             } catch (e: any) {
                 setError(e?.message ?? '상품 상세 조회 중 오류가 발생했습니다.');
