@@ -24,9 +24,22 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
             try {
                 setLoading(true);
                 setError(null);
-                const res = await fetch(`${universalEnv.basePath}/api/product/${product.apolloProductCode}`, { cache: 'no-store' });
-                if (!res.ok) throw new Error(`api error ${res.status}`);
-                const data = await res.json();
+                const urls = [
+                    `/api/product/${product.apolloProductCode}`,
+                    `${universalEnv.basePath}/api/product/${product.apolloProductCode}`,
+                    `api/product/${product.apolloProductCode}`,
+                ];
+                let data: any = null;
+                let lastStatus: number | undefined;
+                for (const url of urls) {
+                    const res = await fetch(url, { cache: 'no-store' });
+                    lastStatus = res.status;
+                    if (res.ok) {
+                        data = await res.json();
+                        break;
+                    }
+                }
+                if (!data) throw new Error(`api error ${lastStatus}`);
                 setApolloDetail(data);
             } catch (e: any) {
                 setError(e?.message ?? '상품 상세 조회 중 오류가 발생했습니다.');
