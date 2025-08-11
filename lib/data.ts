@@ -27,6 +27,7 @@ export const mockProductsData = [
         provider: 'ROKE', 
         minPrice: 3300, 
         supportedCountries: ['JP'], 
+        apolloProductCode: 'PRD2001354649',
         options: [
             { 
                 data: '매일 1GB', 
@@ -44,6 +45,7 @@ export const mockProductsData = [
         provider: 'GlobalSim', 
         minPrice: 7900, 
         supportedCountries: ['JP', 'VN', 'TH', 'TW', 'HK', 'MO', 'SG', 'MY'],
+        apolloProductCode: undefined,
         options: [
             {
                 data: '500MB/일 제공',
@@ -65,6 +67,7 @@ export const mockProductsData = [
         provider: 'AmericaSim', 
         minPrice: 12500, 
         supportedCountries: ['US', 'CA'],
+        apolloProductCode: undefined,
         options: [
             {
                 data: '총 5GB',
@@ -73,6 +76,20 @@ export const mockProductsData = [
             {
                 data: '총 10GB',
                 plans: [ { days: 15, price: 22000 }, { days: 30, price: 32000 } ]
+            }
+        ]
+    },
+    {
+        id: 'P004',
+        name: '베트남 eSIM (API)',
+        provider: 'Apollo',
+        minPrice: 0,
+        supportedCountries: ['VN'],
+        apolloProductCode: 'PRD2001354649',
+        options: [
+            {
+                data: 'API 연동 상품',
+                plans: [ { days: 0, price: 0 } ]
             }
         ]
     },
