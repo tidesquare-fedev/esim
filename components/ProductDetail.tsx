@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 // 파일 확장자를 제거하여 오류를 수정했습니다.
 import { ChevronLeft } from './ui/Icons';
 import type { Product, DataOption, Plan } from '../lib/types';
+import { getApolloProductDetail } from '@/app/actions';
 
 interface ProductDetailProps {
     product: Product;
@@ -11,6 +12,111 @@ interface ProductDetailProps {
 const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
     const [selectedDataOption, setSelectedDataOption] = useState<DataOption>(product.options[0]);
     const [selectedPlan, setSelectedPlan] = useState<Plan>(product.options[0].plans[0]);
+    const [apolloDetail, setApolloDetail] = useState<any>(null);
+    const [loading, setLoading] = useState<boolean>(false);
+    const [error, setError] = useState<string | null>(null);
+    const [optionsFromApi, setOptionsFromApi] = useState<DataOption[] | null>(null);
+
+    useEffect(() => {
+        const load = async () => {
+            if (!product.apolloProductCode) return;
+            try {
+                setLoading(true);
+                setError(null);
+                const data = await getApolloProductDetail(product.apolloProductCode);
+                setApolloDetail(data);
+            } catch (e: any) {
+                setError(e?.message ?? '상품 상세 조회 중 오류가 발생했습니다.');
+            } finally {
+                setLoading(false);
+            }
+        };
+        load();
+    }, [product.apolloProductCode]);
+
+    // Apollo 상세 응답을 UI 옵션/가격으로 매핑
+    useEffect(() => {
+        if (!apolloDetail) return;
+
+        function parseNumberMaybe(value: any): number | null {
+            if (typeof value === 'number') return value;
+            if (typeof value === 'string') {
+                const n = Number(value.replace(/[^0-9.-]/g, ''));
+                return Number.isFinite(n) ? n : null;
+            }
+            return null;
+        }
+
+        function mapApolloDetailToOptions(detail: any): DataOption[] {
+            // 후보 컬렉션을 광범위하게 탐색
+            const candidateArrays: any[] = [];
+            const keys = [
+                'plans','planList','items','itemList','options','optionList',
+                'productOptions','productOptionList','dataOptions','dataOptionList','priceList','feeList'
+            ];
+            keys.forEach((k) => {
+                const v = detail?.[k];
+                if (Array.isArray(v)) candidateArrays.push(v);
+            });
+            // 중첩 구조 내에서도 한 단계 더 찾아보기
+            if (candidateArrays.length === 0) {
+                Object.values(detail || {}).forEach((v: any) => {
+                    if (Array.isArray(v)) candidateArrays.push(v);
+                });
+            }
+
+            const flat: any[] = candidateArrays.flat().filter(Boolean);
+            if (flat.length === 0) return [];
+
+            type GroupMap = Record<string, Plan[]>;
+            const groupedByDataLabel: GroupMap = {};
+
+            for (const item of flat) {
+                const dataLabel = (
+                    item?.data || item?.dataLabel || item?.dataOptionName || item?.optionName || item?.quotaTypeName || '기본'
+                ) as string;
+                const days = (
+                    item?.days ?? item?.period ?? item?.periodDays ?? item?.useDays ?? item?.validDays
+                );
+                const priceRaw = item?.price ?? item?.salePrice ?? item?.amount ?? item?.fee ?? item?.sellingPrice;
+                const price = parseNumberMaybe(priceRaw);
+                const dayNumber = parseNumberMaybe(days);
+                if (price == null || dayNumber == null) continue;
+
+                if (!groupedByDataLabel[dataLabel]) groupedByDataLabel[dataLabel] = [];
+                groupedByDataLabel[dataLabel].push({ days: dayNumber, price });
+            }
+
+            const result: DataOption[] = Object.entries(groupedByDataLabel).map(([label, plans]) => ({
+                data: label,
+                plans: plans
+                    .filter((p) => Number.isFinite(p.days) && Number.isFinite(p.price))
+                    .sort((a, b) => a.days - b.days),
+            }));
+
+            // 유효한 옵션만 반환
+            return result.filter((opt) => opt.plans.length > 0);
+        }
+
+        const derived = mapApolloDetailToOptions(apolloDetail);
+        if (derived.length > 0) {
+            setOptionsFromApi(derived);
+            setSelectedDataOption(derived[0]);
+            setSelectedPlan(derived[0].plans[0]);
+        }
+    }, [apolloDetail]);
+
+    const optionsToRender: DataOption[] = optionsFromApi ?? product.options;
+
+    const minPriceFromOptions = (() => {
+        let min = Number.POSITIVE_INFINITY;
+        for (const opt of optionsToRender) {
+            for (const p of opt.plans) {
+                if (p.price < min) min = p.price;
+            }
+        }
+        return Number.isFinite(min) ? min : product.minPrice;
+    })();
 
     const handleDataOptionSelect = (option: DataOption) => {
         setSelectedDataOption(option);
@@ -54,11 +160,27 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                     </div>
                     <div className="text-right">
                         <p className="text-2xl font-bold" style={{ color: '#0c0c0c' }}>
-                            {product.minPrice.toLocaleString()}원
+                            {minPriceFromOptions.toLocaleString()}원
                         </p>
                         <p className="text-base text-gray-600">부터</p>
                     </div>
                 </div>
+
+                {product.apolloProductCode && (
+                    <div className="mt-3 text-sm text-gray-600">
+                        <div>상품 코드: {product.apolloProductCode}</div>
+                        {loading && <div className="text-gray-500">상세 불러오는 중…</div>}
+                        {error && <div className="text-red-600">{error}</div>}
+                        {apolloDetail && (
+                            <div className="mt-2">
+                                <div className="font-medium">서버 상세 응답 요약</div>
+                                <pre className="text-xs bg-gray-50 p-2 rounded border border-gray-200 overflow-x-auto max-h-48">
+{JSON.stringify(apolloDetail, null, 2)}
+                                </pre>
+                            </div>
+                        )}
+                    </div>
+                )}
                 
                 <div className="mb-4">
                     <p className="text-base text-gray-600 mb-2">지원 국가:</p>
@@ -76,7 +198,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
             <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">1. 데이터 옵션 선택</h3>
                 <div className="flex gap-3">
-                    {product.options.map((option, index) => (
+                    {optionsToRender.map((option, index) => (
                         <button
                             key={index}
                             onClick={() => handleDataOptionSelect(option)}
@@ -89,8 +211,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                                  backgroundColor: selectedDataOption.data === option.data ? '#01c5fd' : undefined
                              }}
                         >
-                            {option.data === '500MB' ? '500MB/일 제공' : 
-                             option.data === '1GB' ? '1GB/일 제공' : '무제한'}
+                            {option.data}
                         </button>
                     ))}
                 </div>
