@@ -8,7 +8,7 @@ const nextConfig = {
   },
 
   // ✅ basePath 추가
-  basePath: "/marketing/eSim",
+  basePath: "/marketing/esim",
   // ✅ experimental.serverActions.allowedOrigins 추가
   experimental: {
     serverActions: {
