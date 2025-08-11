@@ -38,6 +38,7 @@ const deviceAgentCode = (userAgent: string) => {
 
 const HomePage = () => {
   const [deviceCode, setDeviceCode] = useState<"M" | "A" | "P">("P");
+  const [isDesktop, setIsDesktop] = useState(false);
 
   useEffect(() => {
     const userAgent = navigator.userAgent;
