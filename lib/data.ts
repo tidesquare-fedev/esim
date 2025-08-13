@@ -1,22 +1,22 @@
 // src/data/mockData.js
 
 export const mockCountriesData = [
-    { id: 'JP', name: '일본', image: 'https://flagcdn.com/w320/jp.png', keywords: ['도쿄', '오사카', '후쿠오카'] },
-    { id: 'VN', name: '베트남', image: 'https://flagcdn.com/w320/vn.png', keywords: ['다낭', '하노이', '호치민'] },
-    { id: 'TH', name: '태국', image: 'https://flagcdn.com/w320/th.png', keywords: ['방콕', '치앙마이', '푸켓'] },
-    { id: 'TW', name: '대만', image: 'https://flagcdn.com/w320/tw.png', keywords: ['타이페이', '가오슝'] },
-    { id: 'HK', name: '홍콩', image: 'https://flagcdn.com/w320/hk.png', keywords: ['hongkong'] },
-    { id: 'MO', name: '마카오', image: 'https://flagcdn.com/w320/mo.png', keywords: ['macao'] },
-    { id: 'SG', name: '싱가포르', image: 'https://flagcdn.com/w320/sg.png', keywords: ['singapore'] },
-    { id: 'MY', name: '말레이시아', image: 'https://flagcdn.com/w320/my.png', keywords: ['코타키나발루', '쿠알라룸푸르'] },
-    { id: 'US', name: '미국', image: 'https://flagcdn.com/w320/us.png', keywords: ['뉴욕', 'LA', '하와이'] },
-    { id: 'CA', name: '캐나다', image: 'https://flagcdn.com/w320/ca.png', keywords: ['토론토', '밴쿠버'] },
-    { id: 'MX', name: '멕시코', image: 'https://flagcdn.com/w320/mx.png', keywords: ['칸쿤'] },
-    { id: 'GB', name: '영국', image: 'https://flagcdn.com/w320/gb.png', keywords: ['런던'] },
-    { id: 'FR', name: '프랑스', image: 'https://flagcdn.com/w320/fr.png', keywords: ['파리'] },
-    { id: 'IT', name: '이탈리아', image: 'https://flagcdn.com/w320/it.png', keywords: ['로마', '피렌체'] },
-    { id: 'ES', name: '스페인', image: 'https://flagcdn.com/w320/es.png', keywords: ['마드리드', '바르셀로나'] },
-    { id: 'DE', name: '독일', image: 'https://flagcdn.com/w320/de.png', keywords: ['베를린', '뮌헨'] },
+    { id: 'VN', name: '베트남', image: 'https://flagcdn.com/w320/vn.png', keywords: [] },
+    { id: 'SG', name: '싱가포르', image: 'https://flagcdn.com/w320/sg.png', keywords: [] },
+    { id: 'CN', name: '중국', image: 'https://flagcdn.com/w320/cn.png', keywords: [] },
+    { id: 'HK', name: '홍콩', image: 'https://flagcdn.com/w320/hk.png', keywords: [] },
+    { id: 'MO', name: '마카오', image: 'https://flagcdn.com/w320/mo.png', keywords: [] },
+    { id: 'TW', name: '대만', image: 'https://flagcdn.com/w320/tw.png', keywords: [] },
+    { id: 'TH', name: '태국', image: 'https://flagcdn.com/w320/th.png', keywords: [] },
+    { id: 'PH', name: '필리핀', image: 'https://flagcdn.com/w320/ph.png', keywords: [] },
+    { id: 'GU', name: '괌', image: 'https://flagcdn.com/w320/gu.png', keywords: [] },
+    { id: 'MP', name: '사이판', image: 'https://flagcdn.com/w320/mp.png', keywords: [] },
+    { id: 'US', name: '미국', image: 'https://flagcdn.com/w320/us.png', keywords: [] },
+    { id: 'CA', name: '캐나다', image: 'https://flagcdn.com/w320/ca.png', keywords: [] },
+    { id: 'EU', name: '유럽', image: 'https://flagcdn.com/w320/eu.png', keywords: [] },
+    { id: 'AU', name: '호주', image: 'https://flagcdn.com/w320/au.png', keywords: [] },
+    { id: 'NZ', name: '뉴질랜드', image: 'https://flagcdn.com/w320/nz.png', keywords: [] },
+    { id: 'JP', name: '일본', image: 'https://flagcdn.com/w320/jp.png', keywords: [] },
 ];
 
 // 상품 데이터 구조를 2단계 옵션 선택에 맞게 변경했습니다.
