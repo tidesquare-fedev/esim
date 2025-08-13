@@ -10,7 +10,7 @@ interface ProductDetailProps {
     onBack: () => void;
 }
 
-const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
+const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }: ProductDetailProps) => {
     const [selectedDataOption, setSelectedDataOption] = useState<DataOption>(product.options[0]);
     const [selectedPlan, setSelectedPlan] = useState<Plan>(product.options[0].plans[0]);
     const [apolloDetail, setApolloDetail] = useState<any>(null);
@@ -64,7 +64,91 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
         }
 
         function mapApolloDetailToOptions(detail: any): DataOption[] {
-            // 후보 컬렉션을 광범위하게 탐색
+            // 1) Apollo 응답의 대표 구조 처리: options -> (channel_labels|labels) -> labels
+            try {
+                const options = Array.isArray(detail?.options) ? detail.options : null;
+                if (options && options.length > 0) {
+                    const resultsFromOptions: DataOption[] = [];
+
+                    const extractDaysFromText = (text: any): number | null => {
+                        if (typeof text !== 'string') return null;
+                        const mKo = text.match(/(\d+)\s*일/); // 예: "5일"
+                        if (mKo) return Number.parseInt(mKo[1], 10);
+                        const mEn = text.match(/(\d+)\s*(?:day|days|D)\b/i); // 예: "7days", "10 day"
+                        if (mEn) return Number.parseInt(mEn[1], 10);
+                        return null;
+                    };
+
+                    const extractPriceFromLabel = (label: any): number | null => {
+                        const priceRaw = (
+                            label?.repr_price_currency ??
+                            label?.net_price_currency ??
+                            label?.markup_amount_currency ??
+                            label?.price ??
+                            label?.salePrice ??
+                            label?.amount ??
+                            label?.fee ??
+                            label?.sellingPrice
+                        );
+                        return parseNumberMaybe(priceRaw);
+                    };
+
+                    for (const opt of options) {
+                        const dataLabel: string = (
+                            opt?.title ?? opt?.name ?? opt?.description ?? opt?.code ?? '옵션'
+                        ) as string;
+
+                        // channel_labels 우선, 없으면 labels 사용
+                        const channelLabels: any[] = Array.isArray(opt?.channel_labels) ? opt.channel_labels : [];
+                        const plainLabels: any[] = Array.isArray(opt?.labels) ? opt.labels : [];
+
+                        const flattenedLabelItems: any[] = [];
+                        if (channelLabels.length > 0) {
+                            for (const ch of channelLabels) {
+                                if (Array.isArray(ch?.labels)) {
+                                    for (const lb of ch.labels) flattenedLabelItems.push(lb);
+                                }
+                            }
+                        }
+                        if (flattenedLabelItems.length === 0 && plainLabels.length > 0) {
+                            for (const lb of plainLabels) flattenedLabelItems.push(lb);
+                        }
+
+                        const plans: Plan[] = [];
+                        for (const lb of flattenedLabelItems) {
+                            const title: string = (lb?.title ?? lb?.code ?? '선택') as string;
+                            const price = extractPriceFromLabel(lb);
+                            const days = (
+                                extractDaysFromText(title) ??
+                                parseNumberMaybe(lb?.days) ??
+                                parseNumberMaybe(lb?.period) ??
+                                parseNumberMaybe(lb?.validDays) ??
+                                0
+                            );
+                            if (price != null && Number.isFinite(price)) {
+                                plans.push({ days: Number.isFinite(days) ? (days as number) : 0, price });
+                            }
+                        }
+
+                        if (plans.length > 0) {
+                            // 기본은 기간(day) 오름차순, 모두 0이면 가격 오름차순
+                            const hasDays = plans.some(p => p.days > 0);
+                            resultsFromOptions.push({
+                                data: dataLabel,
+                                plans: plans
+                                    .filter(p => Number.isFinite(p.price))
+                                    .sort((a, b) => hasDays ? (a.days - b.days) : (a.price - b.price)),
+                            });
+                        }
+                    }
+
+                    if (resultsFromOptions.length > 0) {
+                        return resultsFromOptions;
+                    }
+                }
+            } catch {}
+
+            // 2) 포괄적 탐색(기존 로직): 다양한 키 후보를 통해 단일 배열 기반으로 매핑
             const candidateArrays: any[] = [];
             const keys = [
                 'plans','planList','items','itemList','options','optionList',
@@ -74,7 +158,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                 const v = detail?.[k];
                 if (Array.isArray(v)) candidateArrays.push(v);
             });
-            // 중첩 구조 내에서도 한 단계 더 찾아보기
             if (candidateArrays.length === 0) {
                 Object.values(detail || {}).forEach((v: any) => {
                     if (Array.isArray(v)) candidateArrays.push(v);
@@ -110,7 +193,6 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                     .sort((a, b) => a.days - b.days),
             }));
 
-            // 유효한 옵션만 반환
             return result.filter((opt) => opt.plans.length > 0);
         }
 
@@ -201,7 +283,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                 <div className="mb-4">
                     <p className="text-base text-gray-600 mb-2">지원 국가:</p>
                     <div className="flex flex-wrap gap-2">
-                        {product.supportedCountries.map(country => (
+                        {product.supportedCountries.map((country: string) => (
                             <span key={country} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-base">
                                 {country}
                             </span>
@@ -238,7 +320,7 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }) => {
                 <h3 className="text-lg font-semibold text-gray-800 mb-4">2. 사용 기간 선택</h3>
                 <div className="bg-gray-50 border border-blue-200 rounded-lg p-4">
                     <div className="flex gap-4">
-                        {selectedDataOption.plans.map((plan, index) => (
+                        {selectedDataOption.plans.map((plan: Plan, index: number) => (
                             <button
                                 key={index}
                                 onClick={() => handlePlanSelect(plan)}
