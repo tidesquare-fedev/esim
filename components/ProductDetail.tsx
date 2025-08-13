@@ -30,8 +30,8 @@ interface ProductDetailProps {
 }
 
 const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }: ProductDetailProps) => {
-  const [selectedDataOption, setSelectedDataOption] = useState<DataOption>(product.options[0])
-  const [selectedPlan, setSelectedPlan] = useState<Plan>(product.options[0].plans[0])
+  const [selectedDataOption, setSelectedDataOption] = useState<DataOption>({ data: "옵션", plans: [] })
+  const [selectedPlan, setSelectedPlan] = useState<Plan>({ days: 0, price: product.minPrice })
   const [apolloDetail, setApolloDetail] = useState<any>(null)
   const [loading, setLoading] = useState<boolean>(false)
   const [error, setError] = useState<string | null>(null)
@@ -399,6 +399,9 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }: Produc
               style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
               onScroll={checkScrollButtons}
             >
+              {optionsToRender.length === 0 && (
+                <div className="text-sm text-gray-500">옵션을 불러오는 중이거나 제공되지 않습니다.</div>
+              )}
               {optionsToRender.map((option, index) => (
                 <button
                   key={index}
@@ -432,25 +435,29 @@ const ProductDetail: React.FC<ProductDetailProps> = ({ product, onBack }: Produc
           <h3 className="text-lg font-semibold text-gray-800 mb-4">2. 사용 기간 선택</h3>
           <div className="bg-gray-50 border border-blue-200 rounded-lg p-4">
             <div className="flex gap-4">
-              {selectedDataOption.plans.map((plan: Plan, index: number) => (
-                <button
-                  key={index}
-                  onClick={() => handlePlanSelect(plan)}
-                  className={`px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 cursor-pointer ${
-                    selectedPlan.days === plan.days
-                      ? "text-gray-900 border scale-105"
-                      : "bg-white text-gray-700 border border-gray-200 hover:border-blue-300 hover:scale-105"
-                  }`}
-                  style={{
-                    borderColor: selectedPlan.days === plan.days ? "#01c5fd" : undefined,
-                  }}
-                >
-                  <div className="text-center">
-                    <div className="font-bold text-base">{plan.days}일</div>
-                    <div className="text-sm text-gray-600 mt-1">{plan.price.toLocaleString()}원</div>
-                  </div>
-                </button>
-              ))}
+              {selectedDataOption.plans.length === 0 ? (
+                <div className="text-sm text-gray-500">데이터 옵션을 먼저 선택하거나, 옵션 정보를 불러오는 중입니다.</div>
+              ) : (
+                selectedDataOption.plans.map((plan: Plan, index: number) => (
+                  <button
+                    key={index}
+                    onClick={() => handlePlanSelect(plan)}
+                    className={`px-4 py-3 rounded-lg text-base font-medium transition-all duration-200 cursor-pointer ${
+                      selectedPlan.days === plan.days
+                        ? "text-gray-900 border scale-105"
+                        : "bg-white text-gray-700 border border-gray-200 hover:border-blue-300 hover:scale-105"
+                    }`}
+                    style={{
+                      borderColor: selectedPlan.days === plan.days ? "#01c5fd" : undefined,
+                    }}
+                  >
+                    <div className="text-center">
+                      <div className="font-bold text-base">{plan.days}일</div>
+                      <div className="text-sm text-gray-600 mt-1">{plan.price.toLocaleString()}원</div>
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         </div>
