@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "crypto";
 
 export const dynamic = "force-dynamic";
 
@@ -14,10 +15,20 @@ export async function GET(
 
     // 0) 간단한 보안/유효성 강화
     // - 허용된 코드 패턴만 통과 (문자열 템플릿 그대로 들어오는 케이스 차단: "${code}")
-    const codePattern = /^[A-Z0-9_-]+$/;
+		const codePattern = /^[A-Z0-9_-]+$/;
     if (!codePattern.test(code)) {
       return NextResponse.json({ error: "invalid product code" }, { status: 400 });
     }
+
+		// - 허용 코드 화이트리스트 (환경변수 설정 시에만 적용)
+		const allowedListRaw = process.env.ALLOWED_PRODUCT_CODES ?? "";
+		const allowedCodes = allowedListRaw
+			.split(",")
+			.map((s) => s.trim())
+			.filter((s) => s.length > 0);
+		if (allowedCodes.length > 0 && !allowedCodes.includes(code)) {
+			return NextResponse.json({ error: "not found" }, { status: 404 });
+		}
 
     // - 크롤러/미리보기 봇 차단 (Slack/FB/Twitter 등)
     const ua = _req.headers.get("user-agent") || "";
@@ -26,9 +37,44 @@ export async function GET(
       return NextResponse.json({ error: "forbidden" }, { status: 403 });
     }
 
+		// - 내부 토큰 인증 (환경변수 설정 시 강제)
+		const expectedInternalToken = process.env.APOLLO_PROXY_TOKEN;
+		if (expectedInternalToken) {
+			const got = _req.headers.get("x-internal-token");
+			if (!got || got !== expectedInternalToken) {
+				return NextResponse.json({ error: "forbidden" }, { status: 403 });
+			}
+		}
+
+		// - HMAC 서명 검증 (환경변수 설정 시 강제)
+		const hmacSecret = process.env.APOLLO_PROXY_HMAC_SECRET;
+		if (hmacSecret) {
+			const u = new URL(_req.url);
+			const ts = u.searchParams.get("ts");
+			const sig = u.searchParams.get("sig");
+			if (!ts || !sig) {
+				return NextResponse.json({ error: "forbidden" }, { status: 403 });
+			}
+			if (!/^[0-9]+$/.test(ts)) {
+				return NextResponse.json({ error: "forbidden" }, { status: 403 });
+			}
+			const now = Date.now();
+			if (Math.abs(now - Number(ts)) > 60_000) {
+				return NextResponse.json({ error: "expired" }, { status: 403 });
+			}
+			const base = `${u.pathname}?ts=${ts}`;
+			const digest = createHmac("sha256", hmacSecret).update(base).digest("hex");
+			try {
+				const ok = timingSafeEqual(Buffer.from(digest), Buffer.from(sig));
+				if (!ok) return NextResponse.json({ error: "forbidden" }, { status: 403 });
+			} catch {
+				return NextResponse.json({ error: "forbidden" }, { status: 403 });
+			}
+		}
+
     // mock=1 쿼리로 모킹 응답 제공 (502 등으로 테스트가 막힐 때 임시 확인용)
     const url = new URL(_req.url);
-    const useMock = url.searchParams.get("mock") === "1";
+		const useMock = url.searchParams.get("mock") === "1";
     const isProd = process.env.NODE_ENV === "production";
     const mockEnabled = !isProd || process.env.ENABLE_PRODUCT_MOCK === "1";
     if (useMock && mockEnabled) {
@@ -114,15 +160,19 @@ export async function GET(
     }
     const token = rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`;
 
-    const endpoint = `https://dev-apollo-api.tidesquare.com/tna-api-v2/apollo/product/detail/${code}`;
+		const endpoint = `https://dev-apollo-api.tidesquare.com/tna-api-v2/apollo/product/detail/${code}`;
 
-    const retryable = (status: number) => [502, 503, 504].includes(status);
+		const retryable = (status: number) => [502, 503, 504].includes(status);
     const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
     const maxAttempts = 3;
     let lastError: any = null;
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       try {
+				// 요청 타임아웃 적용
+				const controller = new AbortController();
+				const timeoutMs = Number(process.env.APOLLO_TIMEOUT_MS ?? "5000");
+				const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
         const res = await fetch(endpoint, {
           method: "GET",
           headers: {
@@ -130,8 +180,10 @@ export async function GET(
             Authorization: token,
             "User-Agent": "esim-5/1.0 (+next.js)",
           },
-          cache: "no-store",
+					cache: "no-store",
+					signal: controller.signal,
         });
+				clearTimeout(timeoutId);
 
         if (res.ok) {
           const data = await res.json();
