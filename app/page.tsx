@@ -1,7 +1,7 @@
 'use client'; // 클라이언트 컴포넌트로 지정
 
 import React, { useState, useEffect } from 'react';
-import { mockCountriesData, mockProductsData } from '@/lib/data';
+import { mockCountriesData, countryProductCodeMap, asiaCommonCountries, asiaCommonProductCode } from '@/lib/data';
 import type { Country, Product } from '@/lib/types';
 import CountrySelector from '@/components/CountrySelector';
 import ProductList from '@/components/ProductList';
@@ -93,9 +93,57 @@ const HomePage = () => {
   const [view, setView] = useState('countrySelector');
   const [selectedCountries, setSelectedCountries] = useState<Country[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [derivedProducts, setDerivedProducts] = useState<Product[]>([]);
 
   const handleCountriesSelect = (countries: Country[]) => {
     setSelectedCountries(countries);
+
+    // 선택한 국가에 따른 상품 묶음 생성 (Apollo 코드 기준으로 통합)
+    const selectedIds = countries.map(c => c.id);
+
+    const codeToProduct: Record<string, Product> = {};
+
+    // 1) 단일/공유 코드 매핑 상품 생성
+    for (const country of countries) {
+      const code = countryProductCodeMap[country.id];
+      if (!code) continue;
+      if (!codeToProduct[code]) {
+        codeToProduct[code] = {
+          id: code,
+          name: `${country.name} eSIM`,
+          provider: 'Apollo',
+          minPrice: 0,
+          supportedCountries: [country.id],
+          apolloProductCode: code,
+          options: [],
+        };
+      } else {
+        // 같은 코드(예: 미국/캐나다 등) 통합
+        if (!codeToProduct[code].supportedCountries.includes(country.id)) {
+          codeToProduct[code].supportedCountries.push(country.id);
+        }
+        // 이름은 다중 국가면 첫 국가명 유지
+      }
+    }
+
+    // 2) 아시아 교체 공통 상품 노출 조건
+    const hasAsiaCommon = selectedIds.some(id => asiaCommonCountries.includes(id));
+    if (hasAsiaCommon) {
+      const asiaCode = asiaCommonProductCode;
+      const asiaSupported = selectedIds.filter(id => asiaCommonCountries.includes(id));
+      codeToProduct[asiaCode] = {
+        id: asiaCode,
+        name: '아시아 교체용 eSIM',
+        provider: 'Apollo',
+        minPrice: 0,
+        supportedCountries: asiaSupported,
+        apolloProductCode: asiaCode,
+        options: [],
+      };
+    }
+
+    const products = Object.values(codeToProduct);
+    setDerivedProducts(products);
     setView('productList');
   };
 
@@ -117,7 +165,7 @@ const HomePage = () => {
       case 'countrySelector':
         return <CountrySelector countries={mockCountriesData} onCountriesSelect={handleCountriesSelect} />;
       case 'productList':
-        return <ProductList selectedCountries={selectedCountries} products={mockProductsData} onProductSelect={handleProductSelect} onBack={handleBack} />;
+        return <ProductList selectedCountries={selectedCountries} products={derivedProducts} onProductSelect={handleProductSelect} onBack={handleBack} />;
       case 'productDetail':
         if (!selectedProduct) return null; // 또는 로딩/에러 처리
         return <ProductDetail product={selectedProduct} onBack={handleBack} />;
