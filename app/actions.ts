@@ -7,31 +7,64 @@ export async function getApolloProductDetail(productCode: string) {
     throw new Error("productCode가 필요합니다.");
   }
 
-  const endpoint = `https://dev-apollo-api.tidesquare.com/tna-api-v2/apollo/product/detail/${productCode}`;
-  const authorizationToken = process.env.APOLLO_API_TOKEN;
+  // (선택) 운영 화이트리스트: 환경변수에 등록된 코드만 허용
+  const allowRaw = process.env.ALLOWED_PRODUCT_CODES ?? "";
+  const allow = allowRaw
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+  if (allow.length > 0 && !allow.includes(productCode)) {
+    throw new Error("상품을 찾을 수 없습니다.");
+  }
 
-  if (!authorizationToken) {
+  const rawToken = process.env.APOLLO_API_TOKEN;
+  if (!rawToken) {
     throw new Error("서버 환경변수 APOLLO_API_TOKEN 이 설정되지 않았습니다.");
   }
+  const auth = rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`;
 
-  const response = await fetch(endpoint, {
-    method: "GET",
-    headers: {
-      Accept: "application/json",
-      Authorization: authorizationToken,
-    },
-    cache: "no-store",
-    next: { revalidate: 0 },
-  });
+  const endpoint = `https://dev-apollo-api.tidesquare.com/tna-api-v2/apollo/product/detail/${productCode}`;
 
-  if (!response.ok) {
-    const errorText = await response.text().catch(() => "");
-    throw new Error(
-      `상품 상세 조회 실패: ${response.status} ${response.statusText} ${errorText}`.trim()
-    );
+  const retryable = (s: number) => [502, 503, 504].includes(s);
+  const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
+  const timeoutMs = Number(process.env.APOLLO_TIMEOUT_MS ?? "5000");
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    const ac = new AbortController();
+    const to = setTimeout(() => ac.abort(), timeoutMs);
+    try {
+      const res = await fetch(endpoint, {
+        method: "GET",
+        headers: {
+          Accept: "application/json",
+          Authorization: auth,
+          "User-Agent": "esim-5/server",
+        },
+        cache: "no-store",
+        next: { revalidate: 0 },
+        signal: ac.signal,
+      });
+      clearTimeout(to);
+
+      if (res.ok) {
+        return res.json();
+      }
+
+      const status = res.status;
+      if (!retryable(status) || attempt === 3) {
+        throw new Error(`상품 상세 조회 실패: ${status} ${res.statusText || "upstream error"}`);
+      }
+      await delay(200 * attempt);
+    } catch (e: any) {
+      clearTimeout(to);
+      if (attempt === 3) {
+        throw new Error(e?.message ?? "network error");
+      }
+      await delay(200 * attempt);
+    }
   }
 
-  return response.json();
+  throw new Error("unreachable");
 }
 
 // 서버 액션: 마케팅 시트에서 Hero 이미지 조회
@@ -77,5 +110,3 @@ export async function fetchHeroImages() {
     mobileImages: { id: number; image_url: string }[];
   };
 }
-
-
