@@ -1,13 +1,14 @@
 // src/data/mockData.js
 
 export const mockCountriesData = [
+    { id: 'JP', name: '일본', image: 'https://flagcdn.com/w320/jp.png', keywords: [] },
     { id: 'VN', name: '베트남', image: 'https://flagcdn.com/w320/vn.png', keywords: [] },
+    { id: 'TH', name: '태국', image: 'https://flagcdn.com/w320/th.png', keywords: [] },
     { id: 'SG', name: '싱가포르', image: 'https://flagcdn.com/w320/sg.png', keywords: [] },
     { id: 'CN', name: '중국', image: 'https://flagcdn.com/w320/cn.png', keywords: [] },
     { id: 'HK', name: '홍콩', image: 'https://flagcdn.com/w320/hk.png', keywords: [] },
     { id: 'MO', name: '마카오', image: 'https://flagcdn.com/w320/mo.png', keywords: [] },
     { id: 'TW', name: '대만', image: 'https://flagcdn.com/w320/tw.png', keywords: [] },
-    { id: 'TH', name: '태국', image: 'https://flagcdn.com/w320/th.png', keywords: [] },
     { id: 'PH', name: '필리핀', image: 'https://flagcdn.com/w320/ph.png', keywords: [] },
     { id: 'GU', name: '괌', image: 'https://flagcdn.com/w320/gu.png', keywords: [] },
     { id: 'MP', name: '사이판', image: 'https://flagcdn.com/w320/mp.png', keywords: [] },
@@ -16,7 +17,6 @@ export const mockCountriesData = [
     { id: 'EU', name: '유럽', image: 'https://flagcdn.com/w320/eu.png', keywords: [] },
     { id: 'AU', name: '호주', image: 'https://flagcdn.com/w320/au.png', keywords: [] },
     { id: 'NZ', name: '뉴질랜드', image: 'https://flagcdn.com/w320/nz.png', keywords: [] },
-    { id: 'JP', name: '일본', image: 'https://flagcdn.com/w320/jp.png', keywords: [] },
 ];
 
 // 상품 데이터 구조를 2단계 옵션 선택에 맞게 변경했습니다.
