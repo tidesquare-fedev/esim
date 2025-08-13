@@ -26,49 +26,49 @@ interface CountrySelectorProps {
 }
 
 const CountrySelector: React.FC<CountrySelectorProps> = ({ countries, onCountriesSelect }) => {
-    const [searchTerm, setSearchTerm] = useState('');
+    // const [searchTerm, setSearchTerm] = useState(''); // 도시나 국가명 검색 비활성화
     const [selected, setSelected] = useState<string[]>([]);
     const [filteredCountries, setFilteredCountries] = useState<Country[]>(countries);
     const [isSearching, setIsSearching] = useState(false);
     const [isGuideOpen, setIsGuideOpen] = useState(false);
 
-    const debouncedSearchTerm = useDebounce(searchTerm, 500);
+    // const debouncedSearchTerm = useDebounce(searchTerm, 500); // 검색 비활성화
 
     useEffect(() => {
         setFilteredCountries(countries);
     }, [countries]);
 
-    useEffect(() => {
-        const performSmartSearch = async () => {
-            if (!debouncedSearchTerm) {
-                setFilteredCountries(countries);
-                setIsSearching(false);
-                return;
-            }
-            setIsSearching(true);
-            const lowerCaseSearchTerm = debouncedSearchTerm.toLowerCase().trim();
-            const localResults = countries.filter(c =>
-                c.name.toLowerCase().includes(lowerCaseSearchTerm) ||
-                (c.keywords && c.keywords.some(k => k.toLowerCase().includes(lowerCaseSearchTerm)))
-            );
-
-            if (localResults.length > 0) {
-                setFilteredCountries(localResults);
-                setIsSearching(false);
-                return;
-            }
-
-            const countryCodeFromApi = await fetchCountryByCity(lowerCaseSearchTerm);
-            if (countryCodeFromApi) {
-                const countryFromApi = countries.find(c => c.id === countryCodeFromApi);
-                setFilteredCountries(countryFromApi ? [countryFromApi] : []);
-            } else {
-                setFilteredCountries([]);
-            }
-            setIsSearching(false);
-        };
-        performSmartSearch();
-    }, [debouncedSearchTerm, countries]);
+    // useEffect(() => {
+    //     const performSmartSearch = async () => {
+    //         if (!debouncedSearchTerm) {
+    //             setFilteredCountries(countries);
+    //             setIsSearching(false);
+    //             return;
+    //         }
+    //         setIsSearching(true);
+    //         const lowerCaseSearchTerm = debouncedSearchTerm.toLowerCase().trim();
+    //         const localResults = countries.filter(c =>
+    //             c.name.toLowerCase().includes(lowerCaseSearchTerm) ||
+    //             (c.keywords && c.keywords.some(k => k.toLowerCase().includes(lowerCaseSearchTerm)))
+    //         );
+    //
+    //         if (localResults.length > 0) {
+    //             setFilteredCountries(localResults);
+    //             setIsSearching(false);
+    //             return;
+    //         }
+    //
+    //         const countryCodeFromApi = await fetchCountryByCity(lowerCaseSearchTerm);
+    //         if (countryCodeFromApi) {
+    //             const countryFromApi = countries.find(c => c.id === countryCodeFromApi);
+    //             setFilteredCountries(countryFromApi ? [countryFromApi] : []);
+    //         } else {
+    //             setFilteredCountries([]);
+    //         }
+    //         setIsSearching(false);
+    //     };
+    //     performSmartSearch();
+    // }, [debouncedSearchTerm, countries]);
 
     const toggleCountry = (countryId: string) => {
         setSelected(prev =>
@@ -87,15 +87,25 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ countries, onCountrie
             <div className="w-full max-w-[750px] mx-auto px-4">
                 <div className="flex justify-between items-center">
                     <h1 className="text-2xl md:text-3xl font-bold text-gray-800">어디로 여행가시나요?</h1>
-                    <button
-                        onClick={() => setIsGuideOpen(true)}
-                        className="text-lg font-medium text-custom-blue hover:underline"
-                    >
-                        eSIM 가이드
-                    </button>
+                    <div className="flex items-center gap-4">
+                        <a
+                            href="https://tourvis.com/activity/search?category=CAT2000000138"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-lg font-medium text-custom-blue hover:underline"
+                        >
+                            전체 상품 보러가기
+                        </a>
+                        <button
+                            onClick={() => setIsGuideOpen(true)}
+                            className="text-lg font-medium text-custom-blue hover:underline"
+                        >
+                            eSIM 가이드
+                        </button>
+                    </div>
                 </div>
                 <p className="text-gray-500 mt-1 mb-6">여행할 국가를 모두 선택해주세요.</p>
-                <div className="relative mb-6">
+                {/* <div className="relative mb-6">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
                         type="text"
@@ -104,7 +114,7 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ countries, onCountrie
                         value={searchTerm}
                         onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                </div>
+                </div> */}
                 <div className="min-h-[300px]">
                     {isSearching ? (
                          <div className="text-center py-10 text-gray-500">검색 중...</div>
@@ -137,7 +147,7 @@ const CountrySelector: React.FC<CountrySelectorProps> = ({ countries, onCountrie
                                      </div>
                                  );
                             })}
-                            {filteredCountries.length === 0 && !isSearching && searchTerm && (
+                            {filteredCountries.length === 0 && !isSearching && (
                                 <div className="col-span-3 text-center py-10 text-gray-500">
                                     검색 결과가 없습니다.
                                 </div>
