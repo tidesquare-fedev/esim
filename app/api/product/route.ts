@@ -12,10 +12,26 @@ export async function GET(
       return NextResponse.json({ error: "product code required" }, { status: 400 });
     }
 
+    // 0) 간단한 보안/유효성 강화
+    // - 허용된 코드 패턴만 통과 (문자열 템플릿 그대로 들어오는 케이스 차단: "${code}")
+    const codePattern = /^[A-Z0-9_-]+$/;
+    if (!codePattern.test(code)) {
+      return NextResponse.json({ error: "invalid product code" }, { status: 400 });
+    }
+
+    // - 크롤러/미리보기 봇 차단 (Slack/FB/Twitter 등)
+    const ua = _req.headers.get("user-agent") || "";
+    const isPreviewBot = /Slackbot|Slackbot-LinkExpanding|facebookexternalhit|Facebot|Twitterbot|LinkedInBot|WhatsApp|SkypeUriPreview/i.test(ua);
+    if (isPreviewBot) {
+      return NextResponse.json({ error: "forbidden" }, { status: 403 });
+    }
+
     // mock=1 쿼리로 모킹 응답 제공 (502 등으로 테스트가 막힐 때 임시 확인용)
     const url = new URL(_req.url);
     const useMock = url.searchParams.get("mock") === "1";
-    if (useMock) {
+    const isProd = process.env.NODE_ENV === "production";
+    const mockEnabled = !isProd || process.env.ENABLE_PRODUCT_MOCK === "1";
+    if (useMock && mockEnabled) {
       const mock = {
         code,
         provider_code: "MOCK",
@@ -87,6 +103,10 @@ export async function GET(
       };
       return NextResponse.json(mock);
     }
+    // 프로덕션에서 mock 요청이 들어오면 차단
+    if (useMock && !mockEnabled) {
+      return NextResponse.json({ error: "mock disabled" }, { status: 404 });
+    }
 
     const rawToken = process.env.APOLLO_API_TOKEN;
     if (!rawToken) {
@@ -118,13 +138,20 @@ export async function GET(
           return NextResponse.json(data);
         }
 
-        // 비정상 응답 처리
+        // 비정상 응답 처리 (민감 정보는 응답에 포함하지 않음)
         const status = res.status;
-        let body: any = null;
-        try { body = await res.json(); } catch { body = await res.text().catch(() => ""); }
+        // 상세 body나 외부 endpoint를 그대로 노출하지 않음
+        let bodySummary: any = null;
+        try {
+          const raw = await res.json();
+          // 가능한 필드만 요약
+          bodySummary = typeof raw === "object" && raw ? { message: raw.message ?? "upstream error" } : null;
+        } catch {
+          bodySummary = null;
+        }
         if (!retryable(status) || attempt === maxAttempts) {
           return NextResponse.json(
-            { error: "upstream_error", status, statusText: res.statusText, body, endpoint },
+            { error: "upstream_error", status, statusText: res.statusText, upstream: "apollo", details: bodySummary },
             { status }
           );
         }
@@ -133,7 +160,7 @@ export async function GET(
       } catch (e: any) {
         lastError = e;
         if (attempt === maxAttempts) {
-          return NextResponse.json({ error: e?.message ?? "network error", endpoint }, { status: 502 });
+          return NextResponse.json({ error: e?.message ?? "network error", upstream: "apollo" }, { status: 502 });
         }
         await delay(200 * attempt);
       }
