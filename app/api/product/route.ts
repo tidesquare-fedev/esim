@@ -63,7 +63,7 @@ export async function GET(_req: Request, { params }: { params: { code: string } 
     }
 
     const token = rawToken.startsWith("Bearer ") ? rawToken : `Bearer ${rawToken}`
-    const endpoint = `https://dev-apollo-api.tidesquare.com/tna-api-v2/apollo/product/detail/${code}`
+    const endpoint = `https://apollo-api.tidesquare.com/tna-api-v2/apollo/product/detail/${code}`
 
     console.log("Making request to Apollo API...")
     console.log("Endpoint:", endpoint)
