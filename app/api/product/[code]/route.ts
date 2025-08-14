@@ -10,31 +10,7 @@ export async function GET(_req: Request, { params }: { params: { code: string } 
     }
 
     const rawToken = process.env.APOLLO_API_TOKEN
-
-    // Mock 지원: /api/product/PRDxxxx?mock=1
-    const url = new URL(_req.url)
-    const useMock = url.searchParams.get("mock") === "1"
-    if (useMock) {
-      const mockData = {
-        code,
-        name: "MOCK eSIM",
-        provider_code: "MOCK",
-        options: [
-          {
-            code: "OP1",
-            title: "매일 1GB",
-            channel_labels: [
-              { channel_id: 1, labels: [
-                { code: "L3", title: "3일", repr_price_currency: 3300 },
-                { code: "L5", title: "5일", repr_price_currency: 5500 },
-                { code: "L7", title: "7일", repr_price_currency: 7700 },
-              ]}
-            ],
-          },
-        ],
-      }
-      return NextResponse.json(mockData)
-    }
+  
 
     if (!rawToken) {
       return NextResponse.json(
