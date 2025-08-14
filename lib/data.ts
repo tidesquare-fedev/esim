@@ -1,6 +1,6 @@
 // src/data/mockData.js
 
-export const mockCountriesData = [
+export const countriesData = [
     { id: 'JP', name: '일본', image: 'https://flagcdn.com/w320/jp.png', keywords: [] },
     { id: 'VN', name: '베트남', image: 'https://flagcdn.com/w320/vn.png', keywords: [] },
     { id: 'TW', name: '대만', image: 'https://flagcdn.com/w320/tw.png', keywords: [] },
@@ -21,7 +21,6 @@ export const mockCountriesData = [
     { id: 'NZ', name: '뉴질랜드', image: 'https://flagcdn.com/w320/nz.png', keywords: [] },
 ];
 
-// 선택 국가 → Apollo 상품 코드 매핑
 export const countryProductCodeMap: Record<string, string> = {
     JP: 'PRD3000275015',
     VN: 'PRD3000301636',
