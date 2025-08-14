@@ -1,184 +1,218 @@
-'use client'; // 클라이언트 컴포넌트로 지정
+"use client"
 
-import React, { useState, useEffect } from 'react';
-import { countriesData, countryProductCodeMap, asiaCommonCountries, asiaCommonProductCode } from '@/lib/data';
-import type { Country, Product } from '@/lib/types';
-import CountrySelector from '@/components/CountrySelector';
-import ProductList from '@/components/ProductList';
-import ProductDetail from '@/components/ProductDetail';
+import type React from "react"
+import { useMemo, useEffect, useState } from "react"
+import { ChevronLeft } from "./ui/Icons"
+import type { Country, Product } from "../lib/types"
 
-const deviceAgentCode = (userAgent: string) => {
-  const isMobileAppCheck = (_agent: string) => {
-    const agent = _agent.toLowerCase();
-
-    const isAndroid = agent.includes("tourvis_android_app");
-    const isIOS = agent.includes("tourvis_ios_app");
-
-    // 모바일 기기인지 간단한 정규식으로 판단
-    const isMobile =
-      /iphone|ipad|ipod|android|blackberry|iemobile|opera mini|mobile/i.test(
-        agent
-      );
-
-    if (isIOS) return "IOS";
-    if (isAndroid) return "Android";
-    if (isMobile) return "Mobile";
-    return "Web";
-  };
-
-  const mode = {
-    IOS: "A",
-    Android: "A",
-    Mobile: "M",
-    Web: "P",
-  };
-
-  return mode[isMobileAppCheck(userAgent)] as "M" | "A" | "P";
-};
-
-const HomePage = () => {
-  const [deviceCode, setDeviceCode] = useState<"M" | "A" | "P">("P");
-  const [isDesktop, setIsDesktop] = useState(false);
-
-  useEffect(() => {
-    const userAgent = navigator.userAgent;
-    const code = deviceAgentCode(userAgent);
-    setDeviceCode(code);
-  }, []);
-
-  useEffect(() => {
-    const checkDevice = () => {
-      // 화면 너비가 768px 이상이면 데스크톱으로 간주
-      const isDesktopSize = window.innerWidth >= 768;
-      // User Agent로 모바일 기기 체크
-      const isMobileDevice =
-        /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
-          navigator.userAgent
-        );
-
-      setIsDesktop(isDesktopSize && !isMobileDevice);
-    };
-
-    checkDevice();
-    window.addEventListener("resize", checkDevice);
-
-    return () => window.removeEventListener("resize", checkDevice);
-  }, []);
-
-  const [heroImages, setHeroImages] = useState<{ pcImages: { id: number; image_url: string }[]; mobileImages: { id: number; image_url: string }[] }>({
-    pcImages: [],
-    mobileImages: [],
-  });
-
-  useEffect(() => {
-    const loadHero = async () => {
-      try {
-        const res = await fetch('/marketing/esim/api/hero', { cache: 'no-store' }).then(r => r.json());
-        setHeroImages(res);
-      } catch (e) {
-        // 실패 시 placeholder 유지
-        setHeroImages({
-          pcImages: [
-            { id: 1, image_url: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/placeholder.svg?height=600&width=1200&text=Hero+Image` },
-          ],
-          mobileImages: [
-            { id: 1, image_url: `${process.env.NEXT_PUBLIC_BASE_PATH || ''}/placeholder.svg?height=600&width=1200&text=Hero+Image` },
-          ],
-        });
-      }
-    };
-    loadHero();
-  }, []);
-
-  const [view, setView] = useState('countrySelector');
-  const [selectedCountries, setSelectedCountries] = useState<Country[]>([]);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [derivedProducts, setDerivedProducts] = useState<Product[]>([]);
-
-  const handleCountriesSelect = (countries: Country[]) => {
-    setSelectedCountries(countries);
-
-    // 선택한 국가에 따른 상품 묶음 생성 (Apollo 코드 기준으로 통합)
-    const selectedIds = countries.map(c => c.id);
-
-    const codeToProduct: Record<string, Product> = {};
-
-    // 1) 단일/공유 코드 매핑 상품 생성
-    for (const country of countries) {
-      const code = countryProductCodeMap[country.id];
-      if (!code) continue;
-      if (!codeToProduct[code]) {
-        codeToProduct[code] = {
-          id: code,
-          name: `${country.name} eSIM`,
-          provider: 'Apollo',
-          minPrice: 0,
-          supportedCountries: [country.id],
-          apolloProductCode: code,
-          options: [],
-        };
-      } else {
-        // 같은 코드(예: 미국/캐나다 등) 통합
-        if (!codeToProduct[code].supportedCountries.includes(country.id)) {
-          codeToProduct[code].supportedCountries.push(country.id);
-        }
-        // 이름은 다중 국가면 첫 국가명 유지
-      }
-    }
-
-    // 2) 아시아 교체 공통 상품 노출 조건
-    const hasAsiaCommon = selectedIds.some(id => asiaCommonCountries.includes(id));
-    if (hasAsiaCommon) {
-      const asiaCode = asiaCommonProductCode;
-      const asiaSupported = selectedIds.filter(id => asiaCommonCountries.includes(id));
-      codeToProduct[asiaCode] = {
-        id: asiaCode,
-        name: '아시아 교체용 eSIM',
-        provider: 'Apollo',
-        minPrice: 0,
-        supportedCountries: asiaSupported,
-        apolloProductCode: asiaCode,
-        options: [],
-      };
-    }
-
-    const products = Object.values(codeToProduct);
-    setDerivedProducts(products);
-    setView('productList');
-  };
-
-  const handleProductSelect = (product: Product) => {
-    setSelectedProduct(product);
-    setView('productDetail');
-  };
-
-  const handleBack = () => {
-    if (view === 'productDetail') {
-      setView('productList');
-    } else if (view === 'productList') {
-      setView('countrySelector');
-    }
-  };
-
-  const renderView = () => {
-    switch (view) {
-      case 'countrySelector':
-        return <CountrySelector countries={countriesData} onCountriesSelect={handleCountriesSelect} />;
-      case 'productList':
-        return <ProductList selectedCountries={selectedCountries} products={derivedProducts} onProductSelect={handleProductSelect} onBack={handleBack} />;
-      case 'productDetail':
-        if (!selectedProduct) return null; // 또는 로딩/에러 처리
-        return <ProductDetail product={selectedProduct} onBack={handleBack} />;
-      default:
-        return <CountrySelector countries={countriesData} onCountriesSelect={handleCountriesSelect} />;
-    }
-  };
-
-  return (
-    <main>
-      {renderView()}
-    </main>
-  );
+interface ProductCardProps {
+  product: Product
+  onProductSelect: (product: Product) => void
+  minPrice?: number
 }
 
-export default HomePage;
+const ProductCard: React.FC<ProductCardProps> = ({ product, onProductSelect, minPrice }) => (
+  <div
+    onClick={() => onProductSelect(product)}
+    className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-custom-blue cursor-pointer transition-all"
+  >
+    <div className="flex justify-between items-start">
+      <div>
+        <p className="text-sm text-custom-blue font-semibold">{product.provider}</p>
+        <h2 className="text-lg font-medium text-gray-800">{product.name}</h2>
+      </div>
+      <div className="text-right flex-shrink-0 ml-4">
+        <p className="text-lg font-extrabold text-gray-900">{(minPrice ?? product.minPrice).toLocaleString()}원~</p>
+        <p className="text-xs text-gray-500">1일 최저가</p>
+      </div>
+    </div>
+  </div>
+)
+
+interface ProductListProps {
+  selectedCountries: Country[]
+  products: Product[]
+  onProductSelect: (product: Product) => void
+  onBack: () => void
+}
+
+const ProductList: React.FC<ProductListProps> = ({ selectedCountries, products, onProductSelect, onBack }) => {
+  const [minPrices, setMinPrices] = useState<Record<string, number>>({})
+
+  useEffect(() => {
+    const abort = new AbortController()
+
+    const parseNumberMaybe = (value: any): number | null => {
+      if (typeof value === "number") return value
+      if (typeof value === "string") {
+        const n = Number(value.replace(/[^0-9.-]/g, ""))
+        return Number.isFinite(n) ? n : null
+      }
+      return null
+    }
+
+    const extractMinPrice = (detail: any): number | null => {
+      try {
+        const options = Array.isArray(detail?.options) ? detail.options : []
+        let min: number | null = null
+        for (const opt of options) {
+          const channelLabels: any[] = Array.isArray(opt?.channel_labels) ? opt.channel_labels : []
+          const plainLabels: any[] = Array.isArray(opt?.labels) ? opt.labels : []
+          const flattened: any[] = []
+          if (channelLabels.length > 0) {
+            for (const ch of channelLabels) {
+              if (Array.isArray(ch?.labels)) for (const lb of ch.labels) flattened.push(lb)
+            }
+          }
+          if (flattened.length === 0 && plainLabels.length > 0) {
+            for (const lb of plainLabels) flattened.push(lb)
+          }
+          for (const lb of flattened) {
+            const priceRaw =
+              lb?.repr_price_currency ??
+              lb?.net_price_currency ??
+              lb?.markup_amount_currency ??
+              lb?.price ??
+              lb?.salePrice ??
+              lb?.amount ??
+              lb?.fee ??
+              lb?.sellingPrice
+            const price = parseNumberMaybe(priceRaw)
+            if (price != null && Number.isFinite(price)) {
+              if (min == null || price < min) min = price
+            }
+          }
+        }
+        if (min != null) return min
+      } catch {}
+
+      // fallback: scan arrays in root
+      try {
+        const candidateArrays: any[] = []
+        Object.values(detail || {}).forEach((v: any) => {
+          if (Array.isArray(v)) candidateArrays.push(v)
+        })
+        let min: number | null = null
+        for (const arr of candidateArrays) {
+          for (const item of arr) {
+            const priceRaw = item?.price ?? item?.salePrice ?? item?.amount ?? item?.fee ?? item?.sellingPrice
+            const price = parseNumberMaybe(priceRaw)
+            if (price != null && Number.isFinite(price)) {
+              if (min == null || price < min) min = price
+            }
+          }
+        }
+        return min
+      } catch {}
+      return null
+    }
+
+    const load = async () => {
+      const entries = await Promise.all(
+        products.map(async (p) => {
+          if (!p.apolloProductCode) return [p.id, undefined] as const
+          try {
+            const res = await fetch(`/api/product/${p.apolloProductCode}`, { cache: "no-store", signal: abort.signal })
+            if (!res.ok) return [p.id, undefined] as const
+            const detail = await res.json()
+            const min = extractMinPrice(detail)
+            return [p.id, min ?? undefined] as const
+          } catch {
+            return [p.id, undefined] as const
+          }
+        })
+      )
+      const map: Record<string, number> = {}
+      for (const [id, min] of entries) {
+        if (min != null) map[id] = min
+      }
+      setMinPrices(map)
+    }
+
+    if (products.length > 0) load()
+    return () => abort.abort()
+  }, [products])
+  const { commonProducts, individualProductsByCountry } = useMemo(() => {
+    const selectedCountryIds = selectedCountries.map((c) => c.id)
+
+    const commonProducts = products.filter((p) => selectedCountryIds.every((id) => p.supportedCountries.includes(id)))
+    const commonProductIds = new Set(commonProducts.map((p) => p.id))
+
+    const individualProductsByCountry = selectedCountries
+      .map((country) => {
+        const countrySpecificProducts = products.filter(
+          (p) => p.supportedCountries.includes(country.id) && !commonProductIds.has(p.id),
+        )
+        return {
+          countryName: country.name,
+          products: countrySpecificProducts,
+        }
+      })
+      .filter((group) => group.products.length > 0)
+
+    return { commonProducts, individualProductsByCountry }
+  }, [selectedCountries, products])
+
+  const hasProducts = commonProducts.length > 0 || individualProductsByCountry.length > 0
+
+  return (
+    <div className="w-full max-w-[750px] mx-auto px-4">
+      <div className="flex items-center mb-6">
+        <button onClick={onBack} className="p-2 rounded-full hover:bg-gray-100 mr-2">
+          <ChevronLeft className="w-6 h-6 text-gray-700" />
+        </button>
+        <h1 className="text-2xl font-bold text-gray-800 truncate">{selectedCountries.map((c) => c.name).join(", ")}</h1>
+      </div>
+
+      {hasProducts ? (
+        <div className="space-y-8">
+          {commonProducts.length > 0 && (
+            <section className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+              <h2 className="text-xl font-bold mb-4 text-gray-800">
+                ✅ {selectedCountries.map((c) => c.name).join(", ")} 함께 사용
+              </h2>
+              <div className="space-y-4">
+                {commonProducts.map((product) => (
+                  <ProductCard key={`common-${product.id}`} product={product} onProductSelect={onProductSelect} minPrice={minPrices[product.id]} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {individualProductsByCountry.map((group) => (
+            <section key={group.countryName}>
+              <h2 className="text-xl font-bold mb-4 text-gray-800">✈️ {group.countryName} 추천 상품</h2>
+              <div className="space-y-4">
+                {group.products.map((product) => (
+                  <ProductCard
+                    key={`${group.countryName}-${product.id}`}
+                    product={product}
+                    onProductSelect={onProductSelect}
+                    minPrice={minPrices[product.id]}
+                  />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div className="text-center py-20">
+          <p className="text-lg font-semibold text-gray-700">이런!</p>
+          <p className="text-gray-500 mt-2">
+            선택하신 국가 조합에 맞는 상품이 없어요.
+            <br />
+            국가를 다시 선택해주세요.
+          </p>
+          <button
+            onClick={onBack}
+            className="mt-6 bg-custom-blue text-white font-bold py-3 px-6 rounded-lg hover:brightness-95 transition"
+          >
+            국가 다시 선택하기
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default ProductList
