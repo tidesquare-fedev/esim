@@ -1,7 +1,7 @@
 'use client'; // 클라이언트 컴포넌트로 지정
 
 import React, { useState, useEffect } from 'react';
-import { mockCountriesData, countryProductCodeMap, asiaCommonCountries, asiaCommonProductCode } from '@/lib/data';
+import { countriesData, countryProductCodeMap, asiaCommonCountries, asiaCommonProductCode } from '@/lib/data';
 import type { Country, Product } from '@/lib/types';
 import CountrySelector from '@/components/CountrySelector';
 import ProductList from '@/components/ProductList';
@@ -163,14 +163,14 @@ const HomePage = () => {
   const renderView = () => {
     switch (view) {
       case 'countrySelector':
-        return <CountrySelector countries={mockCountriesData} onCountriesSelect={handleCountriesSelect} />;
+        return <CountrySelector countries={countriesData} onCountriesSelect={handleCountriesSelect} />;
       case 'productList':
         return <ProductList selectedCountries={selectedCountries} products={derivedProducts} onProductSelect={handleProductSelect} onBack={handleBack} />;
       case 'productDetail':
         if (!selectedProduct) return null; // 또는 로딩/에러 처리
         return <ProductDetail product={selectedProduct} onBack={handleBack} />;
       default:
-        return <CountrySelector countries={mockCountriesData} onCountriesSelect={handleCountriesSelect} />;
+        return <CountrySelector countries={countriesData} onCountriesSelect={handleCountriesSelect} />;
     }
   };
 
