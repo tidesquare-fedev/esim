@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { countriesData, countryProductCodeMap, asiaCommonCountries, asiaCommonProductCode } from '@/lib/data';
 import type { Country, Product } from '@/lib/types';
 import CountrySelector from '@/components/CountrySelector';
-import ProductList from '@/components/ProductList';
+import dynamic from 'next/dynamic';
+const ProductList = dynamic(() => import('@/components/ProductList'), { ssr: false });
 import ProductDetail from '@/components/ProductDetail';
 
 const deviceAgentCode = (userAgent: string) => {
